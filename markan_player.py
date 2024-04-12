@@ -110,7 +110,7 @@ class MediaPlayer:
         selected_song = self.playlist.get(self.playlist.curselection())
         self.current_song = selected_song
         mixer.music.load(self.current_song)
-        self.status_variable.set(f"{os.path.basename(self.current_song)[0:40]}...")
+        self.status_variable.set(os.path.splitext(os.path.basename(self.current_song))[0])
         self.progress_bar["maximum"] = mixer.Sound(self.current_song).get_length()
         self.update_progressbar()
         mixer.music.play()
@@ -136,7 +136,7 @@ class MediaPlayer:
                 prev_song = self.playlist.get(prev_song_idx)
                 self.current_song = prev_song
                 mixer.music.load(self.current_song)
-                self.status_variable.set(f"{os.path.basename(self.current_song)[0:40]}...")
+                self.status_variable.set(os.path.splitext(os.path.basename(self.current_song))[0])
                 mixer.music.play()
                 self.play_variable.set("Pause")
             else:
@@ -152,7 +152,7 @@ class MediaPlayer:
                 next_song = self.playlist.get(next_song_idx)
                 self.current_song = next_song
                 mixer.music.load(self.current_song)
-                self.status_variable.set(f"{os.path.basename(self.current_song[0:40])}...")
+                self.status_variable.set(os.path.splitext(os.path.basename(self.current_song))[0])
                 mixer.music.play()
                 self.play_variable.set("Pause")
             else:
