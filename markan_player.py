@@ -90,8 +90,8 @@ class MediaPlayer:
 
         # Volume Control
         self.volume_variable = DoubleVar()
-        self.volume_variable.set(1)
-        self.volume_scale = Scale(self.control_panel, orient="horizontal", from_=0, to=1,
+        self.volume_variable.set(5)
+        self.volume_scale = Scale(self.control_panel, orient="horizontal", from_=0, to=10,
                                   variable=self.volume_variable, command=self.set_volume)
         self.volume_scale.grid(column=4, row=0, padx=10, pady=10)
 
@@ -159,7 +159,7 @@ class MediaPlayer:
                 showwarning("Warning!", "This is the last song in your playlist.")
     
     def set_volume(self, val):
-        volume = float(val)
+        volume = float(val) / 10
         mixer.music.set_volume(volume)
 
     def update_progressbar(self):
