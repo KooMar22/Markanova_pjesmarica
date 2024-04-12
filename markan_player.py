@@ -1,10 +1,12 @@
 # Import modules
 import os
+from random import choice
 from tkinter import *
 from tkinter import ttk
 from tkinter import filedialog
 from tkinter.messagebox import showwarning, showerror
 from pygame import mixer
+from PIL import Image, ImageTk
 
 
 class MediaPlayer:
@@ -73,27 +75,52 @@ class MediaPlayer:
         # Is the song paused or not?
         self.paused = False
 
+        # Add button images
+        play_img = Image.open("imgs/play_btn.png")
+        self.play_img = ImageTk.PhotoImage(play_img)
+        pause_img = Image.open("imgs/pause_btn.png")
+        self.pause_img = ImageTk.PhotoImage(pause_img)
+        shuffle_img = Image.open("imgs/shuffle_btn.png")
+        self.shuffle_img = ImageTk.PhotoImage(shuffle_img)
+        back_img = Image.open("imgs/back_btn.png")
+        self.back_img = ImageTk.PhotoImage(back_img)
+        stop_img = Image.open("imgs/stop_btn.png")
+        self.stop_img = ImageTk.PhotoImage(stop_img)
+        fwd_img = Image.open("imgs/forward_btn.png")
+        self.fwd_img = ImageTk.PhotoImage(fwd_img)
+
         # Play and Pause button
-        self.play_variable = StringVar()
-        self.play_variable.set("Play")
-        self.play_pause_btn = Button(self.control_panel, textvariable=self.play_variable,
+        self.play_pause_btn = Button(self.control_panel, image=self.play_img,
                                      command=self.play_or_pause)
-        self.play_pause_btn.grid(column=1, row=0, padx=10, pady=10)
+        self.play_pause_btn.image = self.play_img
+        self.play_pause_btn.grid(column=2, row=0, padx=10, pady=10)
+
+        # Stop button
+        self.stop_btn = Button(self.control_panel, image=self.stop_img, command=self.stop_song)
+        self.stop_btn.image = self.stop_img
+        self.stop_btn.grid(column=3, row=0, padx=10, pady=10)
+
+        # Shuffle button
+        self.shuffle_btn = Button(self.control_panel, image=self.shuffle_img, command=self.shuffle)
+        self.shuffle_btn.image = self.shuffle_btn
+        self.shuffle_btn.grid(column=0, row=0, padx=10, pady=10)
 
         # Backward button
-        self.back_btn = Button(self.control_panel, text="⏪", command=self.backward)
-        self.back_btn.grid(column=0, row=0, padx=10, pady=10)
+        self.back_btn = Button(self.control_panel, image=self.back_img, command=self.backward)
+        self.back_img.image = self.back_img
+        self.back_btn.grid(column=1, row=0, padx=10, pady=10)
 
         # Forward
-        self.fwd_btn = Button(self.control_panel, text="⏩", command=self.forward)
-        self.fwd_btn.grid(column=2, row=0, padx=10, pady=10)
+        self.fwd_btn = Button(self.control_panel, image=self.fwd_img, command=self.forward)
+        self.fwd_btn.image= self.fwd_img
+        self.fwd_btn.grid(column=4, row=0, padx=10, pady=10)
 
         # Volume Control
         self.volume_variable = DoubleVar()
         self.volume_variable.set(5)
         self.volume_scale = Scale(self.control_panel, orient="horizontal", from_=0, to=10,
                                   variable=self.volume_variable, command=self.set_volume)
-        self.volume_scale.grid(column=4, row=0, padx=10, pady=10)
+        self.volume_scale.grid(column=5, row=0, padx=10, pady=10)
 
     def add_music(self):
         file_locations = filedialog.askopenfilenames(title="Please select a song",
@@ -105,6 +132,7 @@ class MediaPlayer:
     def remove_song(self):
         current_song = self.playlist.curselection()
         self.playlist.delete(current_song[0])
+        mixer.music.stop()
 
     def play_song(self, event):
         selected_song = self.playlist.get(self.playlist.curselection())
@@ -114,31 +142,42 @@ class MediaPlayer:
         self.progress_bar["maximum"] = mixer.Sound(self.current_song).get_length()
         self.update_progressbar()
         mixer.music.play()
-        self.play_variable.set("Pause")
+        self.play_pause_btn.config(image=self.pause_img)
 
+    def stop_song(self):
+        selected_song = self.playlist.get(self.playlist.curselection())
+        self.current_song = selected_song
+        mixer.music.stop()
+        self.play_pause_btn.config(image=self.play_img)
 
     def play_or_pause(self):
         # Play or Pause the selected song
         if self.paused:
             mixer.music.unpause()
             self.paused = False
-            self.play_variable.set("Pause")
+            self.play_pause_btn.config(image=self.pause_img)
         else:
             mixer.music.pause()
             self.paused = True
-            self.play_variable.set("Play")
+            self.play_pause_btn.config(image=self.play_img)
+
+    def shuffle(self):
+        selection = self.playlist.curselection()
+        if selection:
+            current_song_idx = int(selection[0])
+            self.current_song = self.playlist.get(current_song_idx)
 
     def backward(self):
         selection = self.playlist.curselection()
         if selection:
             prev_song_idx = int(selection[0]) - 1
-            if prev_song_idx > 0:
+            if prev_song_idx >= 0:
                 prev_song = self.playlist.get(prev_song_idx)
                 self.current_song = prev_song
                 mixer.music.load(self.current_song)
                 self.status_variable.set(os.path.splitext(os.path.basename(self.current_song))[0])
                 mixer.music.play()
-                self.play_variable.set("Pause")
+                self.play_pause_btn.config(image=self.pause_img)
             else:
                 showwarning("Warning!", "This is the first song.")
         else:
@@ -154,7 +193,7 @@ class MediaPlayer:
                 mixer.music.load(self.current_song)
                 self.status_variable.set(os.path.splitext(os.path.basename(self.current_song))[0])
                 mixer.music.play()
-                self.play_variable.set("Pause")
+                self.play_pause_btn.config(image=self.pause_img)
             else:
                 showwarning("Warning!", "This is the last song in your playlist.")
     
