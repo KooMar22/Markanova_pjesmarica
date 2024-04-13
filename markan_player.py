@@ -187,7 +187,7 @@ class MediaPlayer:
         if selection:
             prev_song_idx = int(selection[0]) - 1
             if prev_song_idx >= 0:
-                prev_song = self.playlist.get(prev_song_idx)
+                prev_song = playlist[prev_song_idx]
                 self.current_song = prev_song
                 mixer.music.load(self.current_song)
                 self.status_variable.set(os.path.splitext(os.path.basename(self.current_song))[0])
@@ -203,7 +203,7 @@ class MediaPlayer:
         if selection:
             next_song_idx = int(selection[0]) + 1
             if next_song_idx < self.playlist.size():
-                next_song = self.playlist.get(next_song_idx)
+                next_song = playlist[next_song_idx]
                 self.current_song = next_song
                 mixer.music.load(self.current_song)
                 self.status_variable.set(os.path.splitext(os.path.basename(self.current_song))[0])
