@@ -135,7 +135,6 @@ class MediaPlayer:
         # Convert that tuple to a list
         file_list = list(file_tuple)
         # Add the full file names to the playlist, but also display short version
-
         for song in file_list:
             if song not in playlist:
                 playlist.append(song)
