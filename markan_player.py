@@ -51,9 +51,10 @@ class MediaPlayer:
         self.menu = Menu(self.root)
         self.root.config(menu=self.menu)
         self.add_music_menu = Menu(self.menu)
-        self.menu.add_cascade(label="Menu", menu=self.add_music_menu)
+        self.menu.add_cascade(label="Manage Music", menu=self.add_music_menu)
         self.add_music_menu.add_command(label="Add Music", command=self.add_music)
         self.add_music_menu.add_cascade(label="Remove Music", command=self.remove_song)
+        self.add_music_menu.add_cascade(label="Clear Playlist", command=self.clear_all)
 
 
         # Playlist listbox
@@ -129,7 +130,8 @@ class MediaPlayer:
         return ImageTk.PhotoImage(img)
 
     def add_music(self):
-        selected_files = filedialog.askopenfilenames(title="Please select a song",
+        selected_files = filedialog.askopenfilenames(initialdir="D:\\My Music",
+                                                     title="Please select a song",
                                                      filetypes=(("MP3 Files", "*.mp3"),))
         # Put opened files into tuple
         file_tuple = self.root.splitlist(selected_files)
@@ -147,6 +149,9 @@ class MediaPlayer:
         current_song = self.playlist_listbox.curselection()
         self.playlist_listbox.delete(current_song[0])
         mixer.music.stop()
+
+    def clear_all(self):
+        pass
 
     def play_song(self, event):
         if len(playlist) == 0:
