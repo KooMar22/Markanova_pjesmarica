@@ -20,6 +20,7 @@ class MediaPlayer:
         
         self.root.title("Markanova Pjesmarica")
         self.root.resizable(False, False)
+        self.root.iconbitmap("imgs/music_notes_icon.ico")
 
         # Size of the window
         self.win_width = 700
@@ -176,7 +177,7 @@ class MediaPlayer:
             self.paused = True
             self.play_pause_btn.config(image=self.play_img)
 
-    def shuffle(self):
+    def shuffle(self): # Ovo tek trebam implementirati kako treba
         songs = list(self.playlist_listbox.get(0, END))
         shuffle(songs)
         self.playlist_listbox.delete(0, END)
