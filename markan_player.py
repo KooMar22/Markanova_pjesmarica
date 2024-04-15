@@ -8,6 +8,8 @@ from tkinter.messagebox import showinfo, showerror, showwarning
 from pygame import mixer
 from PIL import Image, ImageTk
 
+
+# Create empty playlist to store selected music
 playlist = []
 
 
@@ -54,12 +56,12 @@ class MediaPlayer:
 
 
         # Playlist listbox
-        self.playlist = Listbox(self.playlist_frame, width=110, height=20,
+        self.playlist_listbox = Listbox(self.playlist_frame, width=110, height=20,
                                 selectmode=SINGLE)
         for song in playlist:
-            self.playlist.insert(END, song)
-        self.playlist.pack(fill=BOTH, expand=True)
-        self.playlist.bind("<<ListboxSelect>>", self.play_song)
+            self.playlist_listbox.insert(END, song)
+        self.playlist_listbox.pack(fill=BOTH, expand=True)
+        self.playlist_listbox.bind("<<ListboxSelect>>", self.play_song)
 
         # Add Progress Bar
         self.progress_bar = ttk.Progressbar(self.music_info_frame, orient="horizontal",
@@ -139,11 +141,11 @@ class MediaPlayer:
                 playlist.append(song)
                 temp_array = song.split("/")
                 song_short = temp_array[len(temp_array) - 1]
-                self.playlist.insert(END, song_short)
+                self.playlist_listbox.insert(END, song_short)
 
     def remove_song(self):
-        current_song = self.playlist.curselection()
-        self.playlist.delete(current_song[0])
+        current_song = self.playlist_listbox.curselection()
+        self.playlist_listbox.delete(current_song[0])
         mixer.music.stop()
 
     def play_song(self, event):
@@ -151,7 +153,7 @@ class MediaPlayer:
             showinfo("Notice!", "No songs in your playlist. Please add a song.")
         else:
             mixer.music.stop()
-            selected_songs = self.playlist.curselection()
+            selected_songs = self.playlist_listbox.curselection()
             self.current_song = playlist[int(selected_songs[0])]
             mixer.music.load(self.current_song)
             self.status_variable.set(os.path.splitext(os.path.basename(self.current_song))[0])
@@ -176,14 +178,14 @@ class MediaPlayer:
             self.play_pause_btn.config(image=self.play_img)
 
     def shuffle(self):
-        songs = list(self.playlist.get(0, END))
+        songs = list(self.playlist_listbox.get(0, END))
         shuffle(songs)
-        self.playlist.delete(0, END)
+        self.playlist_listbox.delete(0, END)
         for song in songs:
-            self.playlist.insert(END, song)
+            self.playlist_listbox.insert(END, song)
 
     def backward(self):
-        selection = self.playlist.curselection()
+        selection = self.playlist_listbox.curselection()
         if selection:
             prev_song_idx = int(selection[0]) - 1
             if prev_song_idx >= 0:
@@ -199,10 +201,10 @@ class MediaPlayer:
             showerror("Error!", "No song is currently selected!")
 
     def forward(self):
-        selection = self.playlist.curselection()
+        selection = self.playlist_listbox.curselection()
         if selection:
             next_song_idx = int(selection[0]) + 1
-            if next_song_idx < self.playlist.size():
+            if next_song_idx < self.playlist_listbox.size():
                 next_song = playlist[next_song_idx]
                 self.current_song = next_song
                 mixer.music.load(self.current_song)
