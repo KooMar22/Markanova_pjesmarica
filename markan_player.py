@@ -6,6 +6,7 @@ from tkinter import ttk, filedialog
 from tkinter.messagebox import showinfo, showerror, showwarning
 from pygame import mixer
 from PIL import Image, ImageTk
+from mutagen.mp3 import MP3
 
 
 class MediaPlayer:
@@ -59,19 +60,20 @@ class MediaPlayer:
         self.playlist_listbox.pack(fill=BOTH, expand=True)
         self.playlist_listbox.bind("<<ListboxSelect>>", self.play_song)
 
-        # Add Progress Bar
-        self.progress_bar = ttk.Progressbar(self.music_info_frame, orient="horizontal",
-                                            length=630, mode="determinate")
-        self.progress_bar.grid(column=0, row=1, padx=5)
-
-        # Elapsed time
-        self.elapsed_time = Label(self.music_info_frame, text="00:00")
-        self.elapsed_time.grid(column=1, row=1)
-
+        # Add a Status Info about currently playing song
         self.status_variable = StringVar()
         self.status_variable.set("")
         self.status_lbl = Label(self.music_info_frame, textvariable=self.status_variable)
         self.status_lbl.grid(column=0, row=0, padx=10, pady=10, sticky="ew")
+
+        # Add Progress Label
+        self.progress_lbl = Label(self.music_info_frame, text="", borderwidth=1,
+                                  width=85, relief="groove")
+        self.progress_lbl.grid(column=0, row=1, sticky="w")
+
+        # Add an elapsed time Label
+        self.song_time_lbl = Label(self.music_info_frame, text="")
+        self.song_time_lbl.grid(column=1, row=1, padx=5)
 
         # Current song label
         self.current_song = ""
@@ -128,7 +130,6 @@ class MediaPlayer:
         """Function to add songs from directories"""
         directory = filedialog.askdirectory(initialdir="D:\\My Music")
         os.chdir(directory)
-        # Strip the unnecessary info from the added songs
         for song in os.listdir(directory):
             if song.endswith(".mp3"):
                 self.playlist_listbox.insert(END, song)
@@ -136,10 +137,11 @@ class MediaPlayer:
     def remove_song(self):
         """Function to remove selected song"""
         current_song = self.playlist_listbox.curselection()
-        mixer.music.stop()
-        self.playlist_listbox.delete(current_song[0])
-        self.status_variable.set("")
-        self.play_pause_btn.config(image=self.play_img)
+        if current_song:
+            mixer.music.stop()
+            self.playlist_listbox.delete(current_song[0])
+            self.status_variable.set("")
+            self.play_pause_btn.config(image=self.play_img)
 
     def clear_all(self):
         """Function to clear the playlist"""
@@ -157,6 +159,7 @@ class MediaPlayer:
             mixer.music.play(loops=0)
             self.play_pause_btn.config(image=self.pause_img)
             self.status_variable.set(song)
+            # Update the progress bar when song is playing
             self.update_progressbar()
 
     def stop_song(self):
@@ -164,6 +167,8 @@ class MediaPlayer:
         mixer.music.stop()
         self.playlist_listbox.selection_clear(ACTIVE)
         self.play_pause_btn.config(image=self.play_img)
+        # Clear the song time
+        self.song_time_lbl.config(text="")
 
     def play_or_pause(self):
         """Function to handle toggling between Play and Pause buttons"""
@@ -237,10 +242,27 @@ class MediaPlayer:
 
     def update_progressbar(self):
         """Function to update the progress bar"""
+        # Get the elapsed time
         current_time = mixer.music.get_pos() / 1000
-        self.progress_bar["value"] = current_time
         mins, secs = divmod(int(current_time), 60)
-        self.elapsed_time.config(text="{:02d}:{:02d}".format(mins, secs))
+        elapsed_time = "{:02d}:{:02d}".format(mins, secs)
+
+        # Get currently playing song
+        current_song = self.playlist_listbox.curselection()
+        # Grab the song title
+        song = self.playlist_listbox.get(current_song[0])
+        # Load song with Mutagen
+        song_mut = MP3(song)
+        # Get song length
+        song_len = song_mut.info.length
+        # Convert to time format
+        mins, secs = divmod(int(song_len), 60)
+        total_time = "{:02d}:{:02d}".format(mins, secs)
+
+        # Update the song time
+        self.song_time_lbl.config(text=f"{elapsed_time} / {total_time}")
+
+        # Update the elapsed time
         self.root.after(1000, self.update_progressbar)
 
 
