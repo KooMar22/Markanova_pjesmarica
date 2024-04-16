@@ -139,23 +139,27 @@ class MediaPlayer:
 
     def remove_song(self):
         current_song = self.playlist_listbox.curselection()
-        self.playlist_listbox.delete(current_song[0])
         mixer.music.stop()
+        self.playlist_listbox.delete(current_song[0])
+        self.status_variable.set("")
+        self.play_pause_btn.config(image=self.play_img)
 
     def clear_all(self):
         mixer.music.stop()
         self.playlist_listbox.delete(0, END)
         self.status_variable.set("")
+        self.play_pause_btn.config(image=self.play_img)
 
     def play_song(self, event=None):
-        selected_song = self.playlist_listbox.curselection()
-        if selected_song:
-            song = self.playlist_listbox.get(selected_song[0])
+        current_song = self.playlist_listbox.curselection()
+        if current_song:
+            song = self.playlist_listbox.get(current_song[0])
             song_path = os.path.join(f"D:/My Music/{song}.mp3")
             mixer.music.load(song_path)
             mixer.music.play(loops=0)
             self.play_pause_btn.config(image=self.pause_img)
             self.status_variable.set(song)
+            self.update_progressbar()
 
     def stop_song(self):
         mixer.music.stop()
@@ -177,10 +181,56 @@ class MediaPlayer:
         pass
 
     def backward(self):
-        pass
+        # Get the current song number
+        prev_song = self.playlist_listbox.curselection()
+        if prev_song[0] > 0:
+            # Move it by one
+            prev_song = prev_song[0] - 1
+            # Grab the song title
+            song = self.playlist_listbox.get(prev_song)
+            # Add directory structure back
+            song_path = os.path.join(f"D:/My Music/{song}.mp3")
+            # Load it and play
+            mixer.music.load(song_path)
+            mixer.music.play(loops=0)
+            # Move the bar to that song so the next one could be selected again
+            self.playlist_listbox.selection_clear(0, END)
+            self.playlist_listbox.activate(prev_song)
+            # Set active bar to previous song
+            self.playlist_listbox.selection_set(prev_song, last=None)
+            # Display Pause button
+            self.play_pause_btn.config(image=self.pause_img)
+            # Display the song title into the song status
+            self.status_variable.set(song)
+        else:
+            showerror("Error!", "You are on the first song, can't go backward!")
+
 
     def forward(self):
-        pass
+        # Get the current song number
+        next_song = self.playlist_listbox.curselection()
+        if next_song[0] < self.playlist_listbox.size() - 1:
+            # Move it by one
+            next_song = next_song[0] + 1
+            # Grab the song title
+            song = self.playlist_listbox.get(next_song)
+            # Add directory structure back
+            song_path = os.path.join(f"D:/My Music/{song}.mp3")
+            # Load it and play
+            mixer.music.load(song_path)
+            mixer.music.play(loops=0)
+            # Move the bar to that song so the next one could be selected again
+            self.playlist_listbox.selection_clear(0, END)
+            self.playlist_listbox.activate(next_song)
+            # Set active bar to next song
+            self.playlist_listbox.selection_set(next_song, last=None)
+            # Display Pause button
+            self.play_pause_btn.config(image=self.pause_img)
+            # Display the song title into the song status
+            self.status_variable.set(song)
+        else:
+            showerror("Error!", "You are on the last song, can't go forward!")
+
     
     def set_volume(self, val):
         volume = float(val) / 10
