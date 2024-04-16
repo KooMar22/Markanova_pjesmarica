@@ -166,6 +166,8 @@ class MediaPlayer:
         """Function to stop the selected song"""
         mixer.music.stop()
         self.playlist_listbox.selection_clear(ACTIVE)
+        # Clear the status variable
+        self.status_variable.set("")
         self.play_pause_btn.config(image=self.play_img)
         # Clear the song time
         self.song_time_lbl.config(text="")
@@ -242,28 +244,28 @@ class MediaPlayer:
 
     def update_progressbar(self):
         """Function to update the progress bar"""
-        # Get the elapsed time
-        current_time = mixer.music.get_pos() / 1000
-        mins, secs = divmod(int(current_time), 60)
-        elapsed_time = "{:02d}:{:02d}".format(mins, secs)
-
         # Get currently playing song
         current_song = self.playlist_listbox.curselection()
-        # Grab the song title
-        song = self.playlist_listbox.get(current_song[0])
-        # Load song with Mutagen
-        song_mut = MP3(song)
-        # Get song length
-        song_len = song_mut.info.length
-        # Convert to time format
-        mins, secs = divmod(int(song_len), 60)
-        total_time = "{:02d}:{:02d}".format(mins, secs)
+        if current_song:
+            # Get the elapsed time
+            current_time = mixer.music.get_pos() / 1000
+            mins, secs = divmod(int(current_time), 60)
+            elapsed_time = "{:02d}:{:02d}".format(mins, secs)
+            # Grab the song title
+            song = self.playlist_listbox.get(current_song[0])
+            # Load song with Mutagen
+            song_mut = MP3(song)
+            # Get song length
+            song_len = song_mut.info.length
+            # Convert to time format
+            mins, secs = divmod(int(song_len), 60)
+            total_time = "{:02d}:{:02d}".format(mins, secs)
 
-        # Update the song time
-        self.song_time_lbl.config(text=f"{elapsed_time} / {total_time}")
+            # Update the song time
+            self.song_time_lbl.config(text=f"{elapsed_time} / {total_time}")
 
-        # Update the elapsed time
-        self.root.after(1000, self.update_progressbar)
+            # Update the elapsed time
+            self.root.after(1000, self.update_progressbar)
 
 
 if __name__ == "__main__":
