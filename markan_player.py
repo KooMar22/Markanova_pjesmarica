@@ -2,13 +2,10 @@
 import os
 from random import shuffle
 from tkinter import *
-from tkinter import ttk
-from tkinter import filedialog
+from tkinter import ttk, filedialog
 from tkinter.messagebox import showinfo, showerror, showwarning
 from pygame import mixer
 from PIL import Image, ImageTk
-
-
 
 
 class MediaPlayer:
@@ -123,21 +120,21 @@ class MediaPlayer:
         self.volume_scale.grid(column=5, row=0, padx=10, pady=10)
 
     def load_image(self, path):
+        """Function to handle loading of images"""
         img = Image.open(path)
         return ImageTk.PhotoImage(img)
 
     def add_music(self):
-        songs = filedialog.askopenfilenames(initialdir="D:\\My Music",
-                                                     title="Please select a song",
-                                                     filetypes=(("MP3 Files", "*.mp3"),))
-        
+        """Function to add songs from directories"""
+        directory = filedialog.askdirectory(initialdir="D:\\My Music")
+        os.chdir(directory)
         # Strip the unnecessary info from the added songs
-        for song in songs:
-            song = song.replace("D:/My Music/", "")
-            song = song.replace(".mp3", "")
-            self.playlist_listbox.insert(END, song)
+        for song in os.listdir(directory):
+            if song.endswith(".mp3"):
+                self.playlist_listbox.insert(END, song)
 
     def remove_song(self):
+        """Function to remove selected song"""
         current_song = self.playlist_listbox.curselection()
         mixer.music.stop()
         self.playlist_listbox.delete(current_song[0])
@@ -145,28 +142,31 @@ class MediaPlayer:
         self.play_pause_btn.config(image=self.play_img)
 
     def clear_all(self):
+        """Function to clear the playlist"""
         mixer.music.stop()
         self.playlist_listbox.delete(0, END)
         self.status_variable.set("")
         self.play_pause_btn.config(image=self.play_img)
 
     def play_song(self, event=None):
+        """Function to play the selected song"""
         current_song = self.playlist_listbox.curselection()
         if current_song:
             song = self.playlist_listbox.get(current_song[0])
-            song_path = os.path.join(f"D:/My Music/{song}.mp3")
-            mixer.music.load(song_path)
+            mixer.music.load(song)
             mixer.music.play(loops=0)
             self.play_pause_btn.config(image=self.pause_img)
             self.status_variable.set(song)
             self.update_progressbar()
 
     def stop_song(self):
+        """Function to stop the selected song"""
         mixer.music.stop()
         self.playlist_listbox.selection_clear(ACTIVE)
         self.play_pause_btn.config(image=self.play_img)
 
     def play_or_pause(self):
+        """Function to handle toggling between Play and Pause buttons"""
         # Play or Pause the selected song
         if self.paused:
             mixer.music.unpause()
@@ -181,6 +181,7 @@ class MediaPlayer:
         pass
 
     def backward(self):
+        """Function to handle playing the previous song."""
         # Get the current song number
         prev_song = self.playlist_listbox.curselection()
         if prev_song[0] > 0:
@@ -188,10 +189,8 @@ class MediaPlayer:
             prev_song = prev_song[0] - 1
             # Grab the song title
             song = self.playlist_listbox.get(prev_song)
-            # Add directory structure back
-            song_path = os.path.join(f"D:/My Music/{song}.mp3")
             # Load it and play
-            mixer.music.load(song_path)
+            mixer.music.load(song)
             mixer.music.play(loops=0)
             # Move the bar to that song so the next one could be selected again
             self.playlist_listbox.selection_clear(0, END)
@@ -207,6 +206,7 @@ class MediaPlayer:
 
 
     def forward(self):
+        """Function to handle playing the next song."""
         # Get the current song number
         next_song = self.playlist_listbox.curselection()
         if next_song[0] < self.playlist_listbox.size() - 1:
@@ -214,10 +214,8 @@ class MediaPlayer:
             next_song = next_song[0] + 1
             # Grab the song title
             song = self.playlist_listbox.get(next_song)
-            # Add directory structure back
-            song_path = os.path.join(f"D:/My Music/{song}.mp3")
             # Load it and play
-            mixer.music.load(song_path)
+            mixer.music.load(song)
             mixer.music.play(loops=0)
             # Move the bar to that song so the next one could be selected again
             self.playlist_listbox.selection_clear(0, END)
@@ -233,10 +231,12 @@ class MediaPlayer:
 
     
     def set_volume(self, val):
+        """Function to handle the volume"""
         volume = float(val) / 10
         mixer.music.set_volume(volume)
 
     def update_progressbar(self):
+        """Function to update the progress bar"""
         current_time = mixer.music.get_pos() / 1000
         self.progress_bar["value"] = current_time
         mins, secs = divmod(int(current_time), 60)
