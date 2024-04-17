@@ -1,7 +1,7 @@
 # Import modules
 import os
 import time
-from random import shuffle
+from random import sample
 from tkinter import *
 from tkinter import filedialog, ttk
 from pygame import mixer
@@ -91,7 +91,8 @@ class MediaPlayer:
         # Add button images
         self.play_img = self.load_image("imgs/play_btn.png")
         self.pause_img = self.load_image("imgs/pause_btn.png")
-        self.shuffle_img = self.load_image("imgs/shuffle_btn.png")
+        self.shuffle_off_img = self.load_image("imgs/shuffle_btn_off.png")
+        self.shuffle_on_img = self.load_image("imgs/shuffle_btn_on.png")
         self.back_img = self.load_image("imgs/back_btn.png")
         self.stop_img = self.load_image("imgs/stop_btn.png")
         self.fwd_img = self.load_image("imgs/forward_btn.png")
@@ -108,7 +109,7 @@ class MediaPlayer:
         self.stop_btn.grid(column=3, row=0, padx=10, pady=10)
 
         # Shuffle button
-        self.shuffle_btn = Button(self.control_panel, image=self.shuffle_img, command=self.shuffle)
+        self.shuffle_btn = Button(self.control_panel, image=self.shuffle_on_img, command=self.shuffle)
         self.shuffle_btn.image = self.shuffle_btn
         self.shuffle_btn.grid(column=0, row=0, padx=10, pady=10)
 
@@ -162,6 +163,9 @@ class MediaPlayer:
         """Function to play the selected song"""
         music_playlist = self.playlist_listbox.curselection()
         if music_playlist:
+            # Reset Progress Slider and Song Time Label
+            self.progress_slider.config(value=0)
+            self.song_time_lbl.config(text="")
             # Set Stopped variable to False
             self.stopped = False
             song = self.playlist_listbox.get(music_playlist[0])
@@ -171,9 +175,6 @@ class MediaPlayer:
             self.status_variable.set(song)
             # Update the elapsed time when song is playing
             self.update_time()
-            # Update Slider to Position
-            # slider_pos = int(self.song_len)
-            # self.progress_slider.config(to=slider_pos, value=0)
 
     def stop_song(self):
         """Function to stop the selected song"""
@@ -203,8 +204,15 @@ class MediaPlayer:
             self.paused = True
             self.play_pause_btn.config(image=self.play_img)
 
-    def shuffle(self): # Ovo tek trebam implementirati kako treba
-        pass
+    def shuffle(self):
+        """Function to handle toggling between shuffle on or off"""
+        # Shuffle the playlist?
+        if self.shuffled:
+            self.shuffled = False
+            self.shuffle_btn.config(image=self.shuffle_on_img)
+        else:
+            self.shuffled = True
+            self.shuffle_btn.config(image=self.shuffle_off_img)
 
     def backward(self):
         """Function to handle playing the previous song."""
@@ -213,12 +221,18 @@ class MediaPlayer:
         self.song_time_lbl.config(text="")
         # Get the current song number
         music_playlist = self.playlist_listbox.curselection()
-        if music_playlist[0] > 0:
-            # Move it by one
-            prev_song = music_playlist[0] - 1
+        if self.shuffled:
+            prev_song = sample(range(0, self.playlist_listbox.size()), 1)[0]
+            # Ensure the next song is not the current one
+            while prev_song == music_playlist[0]:
+                prev_song = sample(range(0, self.playlist_listbox.size()), 1)[0]
         else:
-            # If on the first song, move it to the end
-            prev_song = self.playlist_listbox.size() - 1
+            if music_playlist[0] > 0:
+                # Move it by one
+                prev_song = music_playlist[0] - 1
+            else:
+                # If on the first song, move it to the end
+                prev_song = self.playlist_listbox.size() - 1
         # Grab the song title
         song = self.playlist_listbox.get(prev_song)
         # Load it and play
@@ -242,12 +256,18 @@ class MediaPlayer:
         self.song_time_lbl.config(text="")
         # Get the current song number
         music_playlist = self.playlist_listbox.curselection()
-        if music_playlist[0] < self.playlist_listbox.size() - 1:
-            # Move it by one
-            next_song = music_playlist[0] + 1
+        if self.shuffled:
+            next_song = sample(range(0, self.playlist_listbox.size()), 1)[0]
+            # Ensure the next song is not the current one
+            while next_song == music_playlist[0] or next_song == self.playlist_listbox.size():
+                next_song = sample(range(0, self.playlist_listbox.size()), 1)[0]
         else:
-            # If on the last song, move it to the beginning
-            next_song = 0
+            if music_playlist[0] < self.playlist_listbox.size() - 1:
+                # Move it by one
+                next_song = music_playlist[0] + 1
+            else:
+                # If on the last song, move it to the beginning
+                next_song = 0
         # Grab the song title
         song = self.playlist_listbox.get(next_song)
         # Load it and play
@@ -264,10 +284,9 @@ class MediaPlayer:
         self.status_variable.set(song)
 
     
-    def set_volume(self, val):
+    def set_volume(self, value):
         """Function to handle the volume"""
-        volume = float(val) / 10
-        mixer.music.set_volume(volume)
+        mixer.music.set_volume(self.volume_scale.get() / 10)
 
     def slide(self, music_playlist):
         music_playlist = self.playlist_listbox.curselection()
@@ -304,7 +323,9 @@ class MediaPlayer:
             current_time += 1
 
             if int(self.progress_slider.get()) == int(self.song_len):
-                self.song_time_lbl.config(text=f"{total_time} / {total_time}")
+                # Go to the next song after the current finishes - wait for 1 sec
+                time.sleep(1)
+                self.forward()
 
             elif self.paused:
                 pass
@@ -328,19 +349,6 @@ class MediaPlayer:
                 # Move this thing along by 1 sec
                 next_time = int(self.progress_slider.get()) + 1
                 self.progress_slider.config(value=next_time)
-
-
-            # Update the song time
-            # self.song_time_lbl.config(text=f"{elapsed_time} / {total_time}")
-
-            # Update Slider position value to current song position
-            # self.progress_slider.config(value=int(current_time))
-
-
-            # Go to the next song after the current finishes - wait for 1 sec
-            if elapsed_time == total_time:
-                time.sleep(1)
-                self.forward()
 
             # Update the elapsed time
             self.root.after(1000, self.update_time)
