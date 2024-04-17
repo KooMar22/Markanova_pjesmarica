@@ -83,6 +83,10 @@ class MediaPlayer:
         self.song_len = ""
         # Is the song paused or not?
         self.paused = False
+        # Is the song stopped or playing?
+        self.stopped = False
+        # Is the playlist shuffled or not?
+        self.shuffled = False
 
         # Add button images
         self.play_img = self.load_image("imgs/play_btn.png")
@@ -142,14 +146,14 @@ class MediaPlayer:
         """Function to remove selected song"""
         music_playlist = self.playlist_listbox.curselection()
         if music_playlist:
-            mixer.music.stop()
+            self.stop_song()
             self.playlist_listbox.delete(music_playlist[0])
             self.status_variable.set("")
             self.play_pause_btn.config(image=self.play_img)
 
     def clear_all(self):
         """Function to clear the playlist"""
-        mixer.music.stop()
+        self.stop_song()
         self.playlist_listbox.delete(0, END)
         self.status_variable.set("")
         self.play_pause_btn.config(image=self.play_img)
@@ -158,6 +162,8 @@ class MediaPlayer:
         """Function to play the selected song"""
         music_playlist = self.playlist_listbox.curselection()
         if music_playlist:
+            # Set Stopped variable to False
+            self.stopped = False
             song = self.playlist_listbox.get(music_playlist[0])
             mixer.music.load(song)
             mixer.music.play(loops=0)
@@ -171,10 +177,16 @@ class MediaPlayer:
 
     def stop_song(self):
         """Function to stop the selected song"""
+        # Reset Progress Slider and Song Time Label
+        self.progress_slider.config(value=0)
+        self.song_time_lbl.config(text="")
+        # Stop the song
         mixer.music.stop()
         self.playlist_listbox.selection_clear(ACTIVE)
         # Clear the status variable
         self.status_variable.set("")
+        # Get Stop variable to True
+        self.stopped = True
         self.play_pause_btn.config(image=self.play_img)
         # Clear the song time
         self.song_time_lbl.config(text="")
@@ -196,6 +208,9 @@ class MediaPlayer:
 
     def backward(self):
         """Function to handle playing the previous song."""
+        # Reset Progress Slider and Song Time Label
+        self.progress_slider.config(value=0)
+        self.song_time_lbl.config(text="")
         # Get the current song number
         music_playlist = self.playlist_listbox.curselection()
         if music_playlist[0] > 0:
@@ -222,6 +237,9 @@ class MediaPlayer:
 
     def forward(self):
         """Function to handle playing the next song."""
+        # Reset Progress Slider and Song Time Label
+        self.progress_slider.config(value=0)
+        self.song_time_lbl.config(text="")
         # Get the current song number
         music_playlist = self.playlist_listbox.curselection()
         if music_playlist[0] < self.playlist_listbox.size() - 1:
@@ -264,6 +282,9 @@ class MediaPlayer:
         # Get currently playing song
         music_playlist = self.playlist_listbox.curselection()
         if music_playlist:
+            if self.stopped:
+                return
+            
             # Get the elapsed time
             current_time = mixer.music.get_pos() / 1000
             
@@ -285,7 +306,8 @@ class MediaPlayer:
             if int(self.progress_slider.get()) == int(self.song_len):
                 self.song_time_lbl.config(text=f"{total_time} / {total_time}")
 
-
+            elif self.paused:
+                pass
 
             elif int(self.progress_slider.get()) == int(current_time):
                 # Update Slider to Position
