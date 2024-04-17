@@ -169,8 +169,8 @@ class MediaPlayer:
             # Update the elapsed time when song is playing
             self.update_time()
             # Update Slider to Position
-            slider_pos = int(self.song_len)
-            self.progress_slider.config(to=slider_pos, value=0)
+            # slider_pos = int(self.song_len)
+            # self.progress_slider.config(to=slider_pos, value=0)
 
     def stop_song(self):
         """Function to stop the selected song"""
@@ -270,6 +270,10 @@ class MediaPlayer:
         if music_playlist:
             # Get the elapsed time
             current_time = mixer.music.get_pos() / 1000
+
+            # Throw a temporary Label to get data
+            self.slider_lbl.config(text=f"Slider: {int(self.progress_slider.get())} and Song Pos: {int(current_time)}")
+
             mins, secs = divmod(int(current_time), 60)
             elapsed_time = "{:02d}:{:02d}".format(mins, secs)
             # Grab the song title
@@ -282,11 +286,31 @@ class MediaPlayer:
             mins, secs = divmod(int(self.song_len), 60)
             total_time = "{:02d}:{:02d}".format(mins, secs)
 
+            # Increase current time by 1 sec
+            current_time += 1
+            if int(self.progress_slider.get()) == int(current_time):
+                # Update Slider to Position
+                slider_pos = int(self.song_len)
+                self.progress_slider.config(to=slider_pos, value=int(current_time))
+            else:
+                # Update Slider to Position
+                slider_pos = int(self.song_len)
+                self.progress_slider.config(to=slider_pos, value=int(self.progress_slider.get()))
+                
+                # Convert the time from the Progress Slider into min and sec format
+                mins, secs = divmod(int(self.progress_slider.get()), 60)
+                elapsed_time = "{:02d}:{:02d}".format(mins, secs)
+                
+                # Update the song time
+                self.song_time_lbl.config(text=f"{elapsed_time} / {total_time}")
+
+
             # Update the song time
-            self.song_time_lbl.config(text=f"{elapsed_time} / {total_time}")
+            # self.song_time_lbl.config(text=f"{elapsed_time} / {total_time}")
 
             # Update Slider position value to current song position
             self.progress_slider.config(value=int(current_time))
+
 
             # Go to the next song after the current finishes - wait for 1 sec
             if elapsed_time == total_time:
