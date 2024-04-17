@@ -288,7 +288,13 @@ class MediaPlayer:
 
             # Increase current time by 1 sec
             current_time += 1
-            if int(self.progress_slider.get()) == int(current_time):
+
+            if int(self.progress_slider.get()) == int(self.song_len):
+                self.song_time_lbl.config(text=f"{total_time} / {total_time}")
+
+
+
+            elif int(self.progress_slider.get()) == int(current_time):
                 # Update Slider to Position
                 slider_pos = int(self.song_len)
                 self.progress_slider.config(to=slider_pos, value=int(current_time))
