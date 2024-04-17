@@ -1,9 +1,9 @@
 # Import modules
 import os
+import time
 from random import shuffle
 from tkinter import *
-from tkinter import filedialog
-from tkinter.messagebox import showinfo, showerror, showwarning
+from tkinter import filedialog, ttk
 from pygame import mixer
 from PIL import Image, ImageTk
 from mutagen.mp3 import MP3
@@ -66,10 +66,15 @@ class MediaPlayer:
         self.status_lbl = Label(self.music_info_frame, textvariable=self.status_variable)
         self.status_lbl.grid(column=0, row=0, padx=10, pady=10, sticky="ew")
 
-        # Add Progress Label
-        self.progress_lbl = Label(self.music_info_frame, text="", borderwidth=1,
-                                  width=85, relief="groove")
-        self.progress_lbl.grid(column=0, row=1, sticky="w")
+        # Add Progress Slider
+        self.progress_slider = ttk.Scale(self.music_info_frame, length=600,
+                                         from_=0, to=100, orient="horizontal",
+                                         value=0, command=self.slide)
+        self.progress_slider.grid(column=0, row=1, padx=10, sticky="w")
+
+        # Create a temporary Slider Label
+        self.slider_lbl = Label(self.music_info_frame, text="0")
+        self.slider_lbl.grid(column=0, row=2)
 
         # Add a song time Label
         self.song_time_lbl = Label(self.music_info_frame, text="")
@@ -77,6 +82,8 @@ class MediaPlayer:
 
         # Current song label
         self.current_song = ""
+        # Song length
+        self.song_len = ""
         # Is the song paused or not?
         self.paused = False
 
@@ -159,8 +166,8 @@ class MediaPlayer:
             mixer.music.play(loops=0)
             self.play_pause_btn.config(image=self.pause_img)
             self.status_variable.set(song)
-            # Update the progress bar when song is playing
-            self.update_progressbar()
+            # Update the elapsed time when song is playing
+            self.update_time()
 
     def stop_song(self):
         """Function to stop the selected song"""
@@ -194,22 +201,23 @@ class MediaPlayer:
         if music_playlist[0] > 0:
             # Move it by one
             prev_song = music_playlist[0] - 1
-            # Grab the song title
-            song = self.playlist_listbox.get(prev_song)
-            # Load it and play
-            mixer.music.load(song)
-            mixer.music.play(loops=0)
-            # Move the bar to that song so the next one could be selected again
-            self.playlist_listbox.selection_clear(0, END)
-            self.playlist_listbox.activate(prev_song)
-            # Set active bar to previous song
-            self.playlist_listbox.selection_set(prev_song, last=None)
-            # Display Pause button
-            self.play_pause_btn.config(image=self.pause_img)
-            # Display the song title into the song status
-            self.status_variable.set(song)
         else:
-            showerror("Error!", "You are on the first song, can't go backward!")
+            # If on the first song, move it to the end
+            prev_song = self.playlist_listbox.size() - 1
+        # Grab the song title
+        song = self.playlist_listbox.get(prev_song)
+        # Load it and play
+        mixer.music.load(song)
+        mixer.music.play(loops=0)
+        # Move the bar to that song so the next one could be selected again
+        self.playlist_listbox.selection_clear(0, END)
+        self.playlist_listbox.activate(prev_song)
+        # Set active bar to previous song
+        self.playlist_listbox.selection_set(prev_song, last=None)
+        # Display Pause button
+        self.play_pause_btn.config(image=self.pause_img)
+        # Display the song title into the song status
+        self.status_variable.set(song)
 
 
     def forward(self):
@@ -219,22 +227,23 @@ class MediaPlayer:
         if music_playlist[0] < self.playlist_listbox.size() - 1:
             # Move it by one
             next_song = music_playlist[0] + 1
-            # Grab the song title
-            song = self.playlist_listbox.get(next_song)
-            # Load it and play
-            mixer.music.load(song)
-            mixer.music.play(loops=0)
-            # Move the bar to that song so the next one could be selected again
-            self.playlist_listbox.selection_clear(0, END)
-            self.playlist_listbox.activate(next_song)
-            # Set active bar to next song
-            self.playlist_listbox.selection_set(next_song, last=None)
-            # Display Pause button
-            self.play_pause_btn.config(image=self.pause_img)
-            # Display the song title into the song status
-            self.status_variable.set(song)
         else:
-            showerror("Error!", "You are on the last song, can't go forward!")
+            # If on the last song, move it to the beginning
+            next_song = 0
+        # Grab the song title
+        song = self.playlist_listbox.get(next_song)
+        # Load it and play
+        mixer.music.load(song)
+        mixer.music.play(loops=0)
+        # Move the bar to that song so the next one could be selected again
+        self.playlist_listbox.selection_clear(0, END)
+        self.playlist_listbox.activate(next_song)
+        # Set active bar to next song
+        self.playlist_listbox.selection_set(next_song, last=None)
+        # Display Pause button
+        self.play_pause_btn.config(image=self.pause_img)
+        # Display the song title into the song status
+        self.status_variable.set(song)
 
     
     def set_volume(self, val):
@@ -242,30 +251,39 @@ class MediaPlayer:
         volume = float(val) / 10
         mixer.music.set_volume(volume)
 
-    def update_progressbar(self):
-        """Function to update the progress bar"""
+    def slide(self, x):
+        self.slider_lbl.config(text=f"{int(self.progress_slider.get())} / {int(self.song_len)})")
+
+
+    def update_time(self):
+        """Function to update the elapsed time"""
         # Get currently playing song
-        current_song = self.playlist_listbox.curselection()
-        if current_song:
+        music_playlist = self.playlist_listbox.curselection()
+        if music_playlist:
             # Get the elapsed time
             current_time = mixer.music.get_pos() / 1000
             mins, secs = divmod(int(current_time), 60)
             elapsed_time = "{:02d}:{:02d}".format(mins, secs)
             # Grab the song title
-            song = self.playlist_listbox.get(current_song[0])
+            song = self.playlist_listbox.get(music_playlist[0])
             # Load song with Mutagen
             song_mut = MP3(song)
             # Get song length
-            song_len = song_mut.info.length
+            self.song_len = song_mut.info.length
             # Convert to time format
-            mins, secs = divmod(int(song_len), 60)
+            mins, secs = divmod(int(self.song_len), 60)
             total_time = "{:02d}:{:02d}".format(mins, secs)
 
             # Update the song time
             self.song_time_lbl.config(text=f"{elapsed_time} / {total_time}")
 
+            # Go to the next song after the current finishes - wait for 1 sec
+            if elapsed_time == total_time:
+                time.sleep(1)
+                self.forward()
+
             # Update the elapsed time
-            self.root.after(1000, self.update_progressbar)
+            self.root.after(1000, self.update_time)
 
 
 if __name__ == "__main__":
