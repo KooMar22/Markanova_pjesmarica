@@ -2,7 +2,7 @@
 import os
 from random import shuffle
 from tkinter import *
-from tkinter import ttk, filedialog
+from tkinter import filedialog
 from tkinter.messagebox import showinfo, showerror, showwarning
 from pygame import mixer
 from PIL import Image, ImageTk
@@ -71,7 +71,7 @@ class MediaPlayer:
                                   width=85, relief="groove")
         self.progress_lbl.grid(column=0, row=1, sticky="w")
 
-        # Add an elapsed time Label
+        # Add a song time Label
         self.song_time_lbl = Label(self.music_info_frame, text="")
         self.song_time_lbl.grid(column=1, row=1, padx=5)
 
@@ -136,10 +136,10 @@ class MediaPlayer:
 
     def remove_song(self):
         """Function to remove selected song"""
-        current_song = self.playlist_listbox.curselection()
-        if current_song:
+        music_playlist = self.playlist_listbox.curselection()
+        if music_playlist:
             mixer.music.stop()
-            self.playlist_listbox.delete(current_song[0])
+            self.playlist_listbox.delete(music_playlist[0])
             self.status_variable.set("")
             self.play_pause_btn.config(image=self.play_img)
 
@@ -152,9 +152,9 @@ class MediaPlayer:
 
     def play_song(self, event=None):
         """Function to play the selected song"""
-        current_song = self.playlist_listbox.curselection()
-        if current_song:
-            song = self.playlist_listbox.get(current_song[0])
+        music_playlist = self.playlist_listbox.curselection()
+        if music_playlist:
+            song = self.playlist_listbox.get(music_playlist[0])
             mixer.music.load(song)
             mixer.music.play(loops=0)
             self.play_pause_btn.config(image=self.pause_img)
@@ -190,10 +190,10 @@ class MediaPlayer:
     def backward(self):
         """Function to handle playing the previous song."""
         # Get the current song number
-        prev_song = self.playlist_listbox.curselection()
-        if prev_song[0] > 0:
+        music_playlist = self.playlist_listbox.curselection()
+        if music_playlist[0] > 0:
             # Move it by one
-            prev_song = prev_song[0] - 1
+            prev_song = music_playlist[0] - 1
             # Grab the song title
             song = self.playlist_listbox.get(prev_song)
             # Load it and play
@@ -215,10 +215,10 @@ class MediaPlayer:
     def forward(self):
         """Function to handle playing the next song."""
         # Get the current song number
-        next_song = self.playlist_listbox.curselection()
-        if next_song[0] < self.playlist_listbox.size() - 1:
+        music_playlist = self.playlist_listbox.curselection()
+        if music_playlist[0] < self.playlist_listbox.size() - 1:
             # Move it by one
-            next_song = next_song[0] + 1
+            next_song = music_playlist[0] + 1
             # Grab the song title
             song = self.playlist_listbox.get(next_song)
             # Load it and play
