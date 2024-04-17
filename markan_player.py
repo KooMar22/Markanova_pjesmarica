@@ -168,6 +168,9 @@ class MediaPlayer:
             self.status_variable.set(song)
             # Update the elapsed time when song is playing
             self.update_time()
+            # Update Slider to Position
+            slider_pos = int(self.song_len)
+            self.progress_slider.config(to=slider_pos, value=0)
 
     def stop_song(self):
         """Function to stop the selected song"""
@@ -252,7 +255,7 @@ class MediaPlayer:
         mixer.music.set_volume(volume)
 
     def slide(self, x):
-        self.slider_lbl.config(text=f"{int(self.progress_slider.get())} / {int(self.song_len)})")
+        self.slider_lbl.config(text=f"{int(self.progress_slider.get())} / {int(self.song_len)}")
 
 
     def update_time(self):
@@ -276,6 +279,9 @@ class MediaPlayer:
 
             # Update the song time
             self.song_time_lbl.config(text=f"{elapsed_time} / {total_time}")
+
+            # Update Slider position value to current song position
+            self.progress_slider.config(value=int(current_time))
 
             # Go to the next song after the current finishes - wait for 1 sec
             if elapsed_time == total_time:
