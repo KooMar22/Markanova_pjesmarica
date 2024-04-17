@@ -1,6 +1,5 @@
 # Import modules
-import os
-import time
+import os, time
 from random import sample
 from tkinter import *
 from tkinter import filedialog, ttk
@@ -17,20 +16,6 @@ class MediaPlayer:
         self.root.title("Markanova Pjesmarica")
         self.root.resizable(False, False)
         self.root.iconbitmap("imgs/music_notes_icon.ico")
-
-        # Size of the window
-        self.win_width = 700
-        self.win_height = 500
-
-        # Size of the screen
-        self.screen_width = self.root.winfo_screenwidth()
-        self.screen_height = self.root.winfo_screenheight()
-
-        # Center it
-        self.x_coord = (self.screen_width - self.win_width) // 2
-        self.y_coord = (self.screen_height - self.win_height) // 2
-        self.root.geometry("{}x{}+{}+{}".format(self.win_width, self.win_height,
-                                                self.x_coord, self.y_coord))
 
         # Add Frames - Playlist Frame, Music Info Frame and Control Panel Frame
         self.playlist_frame = Frame(self.root)
@@ -130,10 +115,26 @@ class MediaPlayer:
                                   variable=self.volume_variable, command=self.set_volume)
         self.volume_scale.grid(column=5, row=0, padx=10, pady=10)
 
+        # Size of the window
+        self.win_width = 700
+        self.win_height = 500
+
+        # Size of the screen
+        self.screen_width = self.root.winfo_screenwidth()
+        self.screen_height = self.root.winfo_screenheight()
+
+        # Center it
+        self.x_coord = (self.screen_width - self.win_width) // 2
+        self.y_coord = (self.screen_height - self.win_height) // 2
+        self.root.geometry("{}x{}+{}+{}".format(self.win_width, self.win_height,
+                                                self.x_coord, self.y_coord))
+
+
     def load_image(self, path):
         """Function to handle loading of images"""
         img = Image.open(path)
         return ImageTk.PhotoImage(img)
+
 
     def add_music(self):
         """Function to add songs from directories"""
@@ -142,6 +143,7 @@ class MediaPlayer:
         for song in os.listdir(directory):
             if song.endswith(".mp3"):
                 self.playlist_listbox.insert(END, song)
+
 
     def remove_song(self):
         """Function to remove selected song"""
@@ -152,12 +154,14 @@ class MediaPlayer:
             self.status_variable.set("")
             self.play_pause_btn.config(image=self.play_img)
 
+
     def clear_all(self):
         """Function to clear the playlist"""
         self.stop_song()
         self.playlist_listbox.delete(0, END)
         self.status_variable.set("")
         self.play_pause_btn.config(image=self.play_img)
+
 
     def play_song(self, event=None):
         """Function to play the selected song"""
@@ -176,6 +180,7 @@ class MediaPlayer:
             # Update the elapsed time when song is playing
             self.update_time()
 
+
     def stop_song(self):
         """Function to stop the selected song"""
         # Reset Progress Slider and Song Time Label
@@ -192,6 +197,7 @@ class MediaPlayer:
         # Clear the song time
         self.song_time_lbl.config(text="")
 
+
     def play_or_pause(self):
         """Function to handle toggling between Play and Pause buttons"""
         # Play or Pause the selected song
@@ -204,6 +210,7 @@ class MediaPlayer:
             self.paused = True
             self.play_pause_btn.config(image=self.play_img)
 
+
     def shuffle(self):
         """Function to handle toggling between shuffle on or off"""
         # Shuffle the playlist?
@@ -213,6 +220,7 @@ class MediaPlayer:
         else:
             self.shuffled = True
             self.shuffle_btn.config(image=self.shuffle_off_img)
+
 
     def backward(self):
         """Function to handle playing the previous song."""
@@ -288,7 +296,9 @@ class MediaPlayer:
         """Function to handle the volume"""
         mixer.music.set_volume(self.volume_scale.get() / 10)
 
+
     def slide(self, music_playlist):
+        """Function to handle the Progress slider"""
         music_playlist = self.playlist_listbox.curselection()
         if music_playlist:
             song = self.playlist_listbox.get(music_playlist[0])
@@ -306,7 +316,6 @@ class MediaPlayer:
             
             # Get the elapsed time
             current_time = mixer.music.get_pos() / 1000
-            
             mins, secs = divmod(int(current_time), 60)
             elapsed_time = "{:02d}:{:02d}".format(mins, secs)
             # Grab the song title
@@ -352,6 +361,7 @@ class MediaPlayer:
 
             # Update the elapsed time
             self.root.after(1000, self.update_time)
+
 
 
 if __name__ == "__main__":
