@@ -304,12 +304,16 @@ class MediaPlayer:
                 # Update the song time
                 self.song_time_lbl.config(text=f"{elapsed_time} / {total_time}")
 
+                # Move this thing along by 1 sec
+                next_time = int(self.progress_slider.get()) + 1
+                self.progress_slider.config(value=next_time)
+
 
             # Update the song time
             # self.song_time_lbl.config(text=f"{elapsed_time} / {total_time}")
 
             # Update Slider position value to current song position
-            self.progress_slider.config(value=int(current_time))
+            # self.progress_slider.config(value=int(current_time))
 
 
             # Go to the next song after the current finishes - wait for 1 sec
