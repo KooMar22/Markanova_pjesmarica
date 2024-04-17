@@ -254,8 +254,13 @@ class MediaPlayer:
         volume = float(val) / 10
         mixer.music.set_volume(volume)
 
-    def slide(self, x):
-        self.slider_lbl.config(text=f"{int(self.progress_slider.get())} / {int(self.song_len)}")
+    def slide(self, music_playlist):
+        # self.slider_lbl.config(text=f"{int(self.progress_slider.get())} / {int(self.song_len)}")
+        music_playlist = self.playlist_listbox.curselection()
+        if music_playlist:
+            song = self.playlist_listbox.get(music_playlist[0])
+            mixer.music.load(song)
+            mixer.music.play(loops=0, start=int(self.progress_slider.get()))
 
 
     def update_time(self):
