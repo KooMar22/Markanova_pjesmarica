@@ -72,9 +72,6 @@ class MediaPlayer:
                                          value=0, command=self.slide)
         self.progress_slider.grid(column=0, row=1, padx=10, sticky="w")
 
-        # Create a temporary Slider Label
-        self.slider_lbl = Label(self.music_info_frame, text="0")
-        self.slider_lbl.grid(column=0, row=2)
 
         # Add a song time Label
         self.song_time_lbl = Label(self.music_info_frame, text="")
@@ -255,7 +252,6 @@ class MediaPlayer:
         mixer.music.set_volume(volume)
 
     def slide(self, music_playlist):
-        # self.slider_lbl.config(text=f"{int(self.progress_slider.get())} / {int(self.song_len)}")
         music_playlist = self.playlist_listbox.curselection()
         if music_playlist:
             song = self.playlist_listbox.get(music_playlist[0])
@@ -270,10 +266,7 @@ class MediaPlayer:
         if music_playlist:
             # Get the elapsed time
             current_time = mixer.music.get_pos() / 1000
-
-            # Throw a temporary Label to get data
-            self.slider_lbl.config(text=f"Slider: {int(self.progress_slider.get())} and Song Pos: {int(current_time)}")
-
+            
             mins, secs = divmod(int(current_time), 60)
             elapsed_time = "{:02d}:{:02d}".format(mins, secs)
             # Grab the song title
