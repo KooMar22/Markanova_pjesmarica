@@ -62,6 +62,10 @@ class MediaPlayer:
         self.song_time_lbl = Label(self.music_info_frame, text="")
         self.song_time_lbl.grid(column=1, row=1, padx=5)
 
+        # Initialize playlist and song_paths lists
+        self.playlist = []
+        self.song_paths = []
+
         # Current song label
         self.current_song = ""
         # Song length
@@ -135,14 +139,32 @@ class MediaPlayer:
         img = Image.open(path)
         return ImageTk.PhotoImage(img)
 
+    def extract_song_info(self, file_path):
+        """Extracts song metadata (artist and title)"""
+        try:
+            audio = MP3(file_path)
+            artist = audio['TPE1'].text[0] if 'TPE1' in audio else 'Unknown Artist'
+            title = audio['TIT2'].text[0] if 'TIT2' in audio else 'Unknown Title'
+            return {'artist': artist, 'title': title}
+        except Exception as e:
+            print(f"Error extracting metadata for {file_path}: {e}")
+            return None
+
 
     def add_music(self):
         """Function to add songs from directories"""
-        directory = filedialog.askdirectory(initialdir="D:\\My Music")
-        os.chdir(directory)
-        for song in os.listdir(directory):
-            if song.endswith(".mp3"):
-                self.playlist_listbox.insert(END, song)
+        files = filedialog.askopenfilenames(initialdir="D:\\My Music",
+                                            filetypes=(("MP3 files", "*.mp3"),))
+        for file_path in files:
+            # Extract metadata
+            song_info = self.extract_song_info(file_path)
+            if song_info:
+                # Add song info to playlist listbox
+                self.playlist.append(song_info)
+                self.playlist_listbox.insert(
+                    END, f"{song_info['artist']} - {song_info['title']}")
+                # Add file path to song_paths list
+                self.song_paths.append(file_path)
 
 
     def remove_song(self):
@@ -172,7 +194,8 @@ class MediaPlayer:
             self.song_time_lbl.config(text="")
             # Set Stopped variable to False
             self.stopped = False
-            song = self.playlist_listbox.get(music_playlist[0])
+            # Use song path from song_paths list
+            song = self.song_paths[music_playlist[0]]
             mixer.music.load(song)
             mixer.music.play(loops=0)
             self.play_pause_btn.config(image=self.pause_img)
@@ -242,7 +265,7 @@ class MediaPlayer:
                 # If on the first song, move it to the end
                 prev_song = self.playlist_listbox.size() - 1
         # Grab the song title
-        song = self.playlist_listbox.get(prev_song)
+        song = self.song_paths[prev_song]  # Use song path from song_paths list
         # Load it and play
         mixer.music.load(song)
         mixer.music.play(loops=0)
@@ -277,7 +300,7 @@ class MediaPlayer:
                 # If on the last song, move it to the beginning
                 next_song = 0
         # Grab the song title
-        song = self.playlist_listbox.get(next_song)
+        song = self.song_paths[next_song]  # Use song path from song_paths list
         # Load it and play
         mixer.music.load(song)
         mixer.music.play(loops=0)
@@ -301,7 +324,8 @@ class MediaPlayer:
         """Function to handle the Progress slider"""
         music_playlist = self.playlist_listbox.curselection()
         if music_playlist:
-            song = self.playlist_listbox.get(music_playlist[0])
+            # Use song path from song_paths list
+            song = self.song_paths[music_playlist[0]]
             mixer.music.load(song)
             mixer.music.play(loops=0, start=int(self.progress_slider.get()))
 
@@ -313,13 +337,14 @@ class MediaPlayer:
         if music_playlist:
             if self.stopped:
                 return
-            
+
             # Get the elapsed time
             current_time = mixer.music.get_pos() / 1000
             mins, secs = divmod(int(current_time), 60)
             elapsed_time = "{:02d}:{:02d}".format(mins, secs)
             # Grab the song title
-            song = self.playlist_listbox.get(music_playlist[0])
+            # Use song path from song_paths list
+            song = self.song_paths[music_playlist[0]]
             # Load song with Mutagen
             song_mut = MP3(song)
             # Get song length
@@ -347,11 +372,11 @@ class MediaPlayer:
                 # Update Slider to Position
                 slider_pos = int(self.song_len)
                 self.progress_slider.config(to=slider_pos, value=int(self.progress_slider.get()))
-                
+
                 # Convert the time from the Progress Slider into min and sec format
                 mins, secs = divmod(int(self.progress_slider.get()), 60)
                 elapsed_time = "{:02d}:{:02d}".format(mins, secs)
-                
+
                 # Update the song time
                 self.song_time_lbl.config(text=f"{elapsed_time} / {total_time}")
 
