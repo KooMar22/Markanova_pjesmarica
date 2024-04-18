@@ -171,17 +171,39 @@ class MediaPlayer:
         """Function to remove selected song"""
         music_playlist = self.playlist_listbox.curselection()
         if music_playlist:
+            # Stop the song
             self.stop_song()
-            self.playlist_listbox.delete(music_playlist[0])
+            # Get the index of the selected song
+            removed_index = music_playlist[0]
+            # Delete the song from the playlist listbox
+            self.playlist_listbox.delete(removed_index)
+            # Remove the path from song_paths list
+            self.song_paths.pop(removed_index)
+            # Remove the corresponding entry from index_to_path
+            del self.index_to_path[removed_index]
+            # Clear the status variable
             self.status_variable.set("")
+            # Reset the play/pause button
             self.play_pause_btn.config(image=self.play_img)
+
+            # Remove the last entry in index_to_path dictionary
+            if self.index_to_path:
+                self.index_to_path.popitem()
 
 
     def clear_all(self):
         """Function to clear the playlist"""
+        # Stop the song
         self.stop_song()
+        # Clear the playlist listbox
         self.playlist_listbox.delete(0, END)
+        # Clear the song_paths list
+        self.song_paths.clear()
+        # Clear the index_to_path dictionary
+        self.index_to_path.clear()
+        # Clear the status variable
         self.status_variable.set("")
+        # Reset the play/pause button
         self.play_pause_btn.config(image=self.play_img)
 
 
@@ -258,35 +280,37 @@ class MediaPlayer:
         self.song_time_lbl.config(text="")
         # Get the current song number
         music_playlist = self.playlist_listbox.curselection()
-        if self.shuffled:
-            prev_song = sample(range(0, self.playlist_listbox.size()), 1)[0]
-            # Ensure the next song is not the current one
-            while prev_song == music_playlist[0]:
+        # Check if music_playlist is not empty
+        if music_playlist:
+            if self.shuffled:
                 prev_song = sample(range(0, self.playlist_listbox.size()), 1)[0]
-        else:
-            if music_playlist[0] > 0:
-                # Move it by one
-                prev_song = music_playlist[0] - 1
+                # Ensure the next song is not the current one
+                while prev_song == music_playlist[0]:
+                    prev_song = sample(range(0, self.playlist_listbox.size()), 1)[0]
             else:
-                # If on the first song, move it to the end
-                prev_song = self.playlist_listbox.size() - 1
-        # Grab the song title
-        song = self.song_paths[prev_song]  # Use song path from song_paths list
-        # Load it and play
-        mixer.music.load(song)
-        mixer.music.play(loops=0)
-        # Move the bar to that song so the next one could be selected again
-        self.playlist_listbox.selection_clear(0, END)
-        self.playlist_listbox.activate(prev_song)
-        # Set active bar to previous song
-        self.playlist_listbox.selection_set(prev_song, last=None)
-        # Display Pause button
-        self.play_pause_btn.config(image=self.pause_img)
-        # Extract song info
-        song_info = self.extract_song_info(song)
-        if song_info:
-            # Update status variable with artist and title
-            self.status_variable.set(f"{song_info['artist']} - {song_info['title']}")
+                if music_playlist[0] > 0:
+                    # Move it by one
+                    prev_song = music_playlist[0] - 1
+                else:
+                    # If on the first song, move it to the end
+                    prev_song = self.playlist_listbox.size() - 1
+            # Grab the song title
+            song = self.song_paths[prev_song]  # Use song path from song_paths list
+            # Load it and play
+            mixer.music.load(song)
+            mixer.music.play(loops=0)
+            # Move the bar to that song so the next one could be selected again
+            self.playlist_listbox.selection_clear(0, END)
+            self.playlist_listbox.activate(prev_song)
+            # Set active bar to previous song
+            self.playlist_listbox.selection_set(prev_song, last=None)
+            # Display Pause button
+            self.play_pause_btn.config(image=self.pause_img)
+            # Extract song info
+            song_info = self.extract_song_info(song)
+            if song_info:
+                # Update status variable with artist and title
+                self.status_variable.set(f"{song_info['artist']} - {song_info['title']}")
 
 
     def forward(self):
@@ -296,35 +320,40 @@ class MediaPlayer:
         self.song_time_lbl.config(text="")
         # Get the current song number
         music_playlist = self.playlist_listbox.curselection()
-        if self.shuffled:
-            next_song = sample(range(0, self.playlist_listbox.size()), 1)[0]
-            # Ensure the next song is not the current one
-            while next_song == music_playlist[0] or next_song == self.playlist_listbox.size():
+        # Check if music_playlist is not empty
+        if music_playlist:
+            if self.shuffled:
                 next_song = sample(range(0, self.playlist_listbox.size()), 1)[0]
-        else:
-            if music_playlist[0] < self.playlist_listbox.size() - 1:
-                # Move it by one
-                next_song = music_playlist[0] + 1
+                # Ensure the next song is not the current one
+                while next_song == music_playlist[0] or next_song == self.playlist_listbox.size():
+                    next_song = sample(
+                        range(0, self.playlist_listbox.size()), 1)[0]
             else:
-                # If on the last song, move it to the beginning
-                next_song = 0
-        # Grab the song title
-        song = self.song_paths[next_song]  # Use song path from song_paths list
-        # Load it and play
-        mixer.music.load(song)
-        mixer.music.play(loops=0)
-        # Move the bar to that song so the next one could be selected again
-        self.playlist_listbox.selection_clear(0, END)
-        self.playlist_listbox.activate(next_song)
-        # Set active bar to next song
-        self.playlist_listbox.selection_set(next_song, last=None)
-        # Display Pause button
-        self.play_pause_btn.config(image=self.pause_img)
-        # Extract song info
-        song_info = self.extract_song_info(song)
-        if song_info:
-            # Update status variable with artist and title
-            self.status_variable.set(f"{song_info['artist']} - {song_info['title']}")
+                # Check if the current song is not the last one in the playlist
+                if music_playlist[0] < self.playlist_listbox.size() - 1:
+                    # Move it by one
+                    next_song = music_playlist[0] + 1
+                else:
+                    # If on the last song, move it to the beginning
+                    next_song = 0
+            # Grab the song title
+            song = self.song_paths[next_song]  # Use song path from song_paths list
+            # Load it and play
+            mixer.music.load(song)
+            mixer.music.play(loops=0)
+            # Move the bar to that song so the next one could be selected again
+            self.playlist_listbox.selection_clear(0, END)
+            self.playlist_listbox.activate(next_song)
+            # Set active bar to next song
+            self.playlist_listbox.selection_set(next_song, last=None)
+            # Display Pause button
+            self.play_pause_btn.config(image=self.pause_img)
+            # Extract song info
+            song_info = self.extract_song_info(song)
+            if song_info:
+                # Update status variable with artist and title
+                self.status_variable.set(
+                    f"{song_info['artist']} - {song_info['title']}")
 
     
     def set_volume(self, value):
