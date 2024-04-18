@@ -170,25 +170,39 @@ class MediaPlayer:
     def remove_song(self):
         """Function to remove selected song"""
         music_playlist = self.playlist_listbox.curselection()
-        if music_playlist:
-            # Stop the song
-            self.stop_song()
-            # Get the index of the selected song
-            removed_index = music_playlist[0]
-            # Delete the song from the playlist listbox
-            self.playlist_listbox.delete(removed_index)
-            # Remove the path from song_paths list
-            self.song_paths.pop(removed_index)
-            # Remove the corresponding entry from index_to_path
-            del self.index_to_path[removed_index]
-            # Clear the status variable
+        if not music_playlist:
+            return
+
+        # Stop the song
+        self.stop_song()
+
+        # Get the index of the selected song
+        removed_index = int(music_playlist[0])
+
+        # Delete the song from the playlist listbox
+        self.playlist_listbox.delete(removed_index)
+
+        # Remove the corresponding entry from index_to_path
+        removed_song_path = self.index_to_path.pop(removed_index, None)
+
+        # Update the index_to_path dictionary for indices greater than the removed index
+        for index, song_path in list(self.index_to_path.items()):
+            if index > removed_index:
+                self.index_to_path[index - 1] = song_path
+                del self.index_to_path[index]
+
+        # Clear the status variable if the removed song was the currently playing one
+        if removed_song_path == self.current_song:
             self.status_variable.set("")
-            # Reset the play/pause button
+            self.current_song = ""
+
+        # Clear the play/pause button if the playlist becomes empty
+        if self.playlist_listbox.size() == 0:
             self.play_pause_btn.config(image=self.play_img)
 
-            # Remove the last entry in index_to_path dictionary
-            if self.index_to_path:
-                self.index_to_path.popitem()
+        # Remove the song path from the song_paths list
+        if removed_song_path in self.song_paths:
+            self.song_paths.remove(removed_song_path)
 
 
     def clear_all(self):
