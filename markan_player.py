@@ -62,10 +62,10 @@ class MediaPlayer:
         self.song_time_lbl = Label(self.music_info_frame, text="")
         self.song_time_lbl.grid(column=1, row=1, padx=5)
 
-        # Initialize playlist and song_paths lists
-        self.playlist = []
+        # Initialize song_paths lists
         self.song_paths = []
-
+        # Dictionary to map listbox indices to file paths
+        self.index_to_path = {}
         # Current song label
         self.current_song = ""
         # Song length
@@ -152,7 +152,6 @@ class MediaPlayer:
 
 
     def add_music(self):
-        """Function to add songs from directories"""
         files = filedialog.askopenfilenames(initialdir="D:\\My Music",
                                             filetypes=(("MP3 files", "*.mp3"),))
         for file_path in files:
@@ -160,11 +159,12 @@ class MediaPlayer:
             song_info = self.extract_song_info(file_path)
             if song_info:
                 # Add song info to playlist listbox
-                self.playlist.append(song_info)
-                self.playlist_listbox.insert(
-                    END, f"{song_info['artist']} - {song_info['title']}")
+                self.playlist_listbox.insert(END, f"{song_info['artist']} - {song_info['title']}")
                 # Add file path to song_paths list
+                index = self.playlist_listbox.size() - 1
                 self.song_paths.append(file_path)
+                # Update index_to_path dictionary
+                self.index_to_path[index] = file_path
 
 
     def remove_song(self):
@@ -189,17 +189,23 @@ class MediaPlayer:
         """Function to play the selected song"""
         music_playlist = self.playlist_listbox.curselection()
         if music_playlist:
+            index = music_playlist[0]
+            song_path = self.index_to_path[index]
             # Reset Progress Slider and Song Time Label
             self.progress_slider.config(value=0)
             self.song_time_lbl.config(text="")
             # Set Stopped variable to False
             self.stopped = False
             # Use song path from song_paths list
-            song = self.song_paths[music_playlist[0]]
-            mixer.music.load(song)
+            song_path = self.song_paths[music_playlist[0]]
+            mixer.music.load(song_path)
             mixer.music.play(loops=0)
             self.play_pause_btn.config(image=self.pause_img)
-            self.status_variable.set(song)
+            # Extract song info
+            song_info = self.extract_song_info(song_path)
+            if song_info:
+                # Update status variable with artist and title
+                self.status_variable.set(f"{song_info['artist']} - {song_info['title']}")
             # Update the elapsed time when song is playing
             self.update_time()
 
@@ -276,8 +282,11 @@ class MediaPlayer:
         self.playlist_listbox.selection_set(prev_song, last=None)
         # Display Pause button
         self.play_pause_btn.config(image=self.pause_img)
-        # Display the song title into the song status
-        self.status_variable.set(song)
+        # Extract song info
+        song_info = self.extract_song_info(song)
+        if song_info:
+            # Update status variable with artist and title
+            self.status_variable.set(f"{song_info['artist']} - {song_info['title']}")
 
 
     def forward(self):
@@ -311,8 +320,11 @@ class MediaPlayer:
         self.playlist_listbox.selection_set(next_song, last=None)
         # Display Pause button
         self.play_pause_btn.config(image=self.pause_img)
-        # Display the song title into the song status
-        self.status_variable.set(song)
+        # Extract song info
+        song_info = self.extract_song_info(song)
+        if song_info:
+            # Update status variable with artist and title
+            self.status_variable.set(f"{song_info['artist']} - {song_info['title']}")
 
     
     def set_volume(self, value):
