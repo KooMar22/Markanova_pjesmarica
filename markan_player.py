@@ -143,9 +143,9 @@ class MediaPlayer:
         """Extracts song metadata (artist and title)"""
         try:
             audio = MP3(file_path)
-            artist = audio['TPE1'].text[0] if 'TPE1' in audio else 'Unknown Artist'
-            title = audio['TIT2'].text[0] if 'TIT2' in audio else 'Unknown Title'
-            return {'artist': artist, 'title': title}
+            artist = audio['TPE1'].text[0] if "TPE1" in audio else "Unknown Artist"
+            title = audio['TIT2'].text[0] if "TIT2" in audio else "Unknown Title"
+            return {"artist": artist, "title": title}
         except Exception as e:
             print(f"Error extracting metadata for {file_path}: {e}")
             return None
@@ -340,8 +340,7 @@ class MediaPlayer:
                 next_song = sample(range(0, self.playlist_listbox.size()), 1)[0]
                 # Ensure the next song is not the current one
                 while next_song == music_playlist[0] or next_song == self.playlist_listbox.size():
-                    next_song = sample(
-                        range(0, self.playlist_listbox.size()), 1)[0]
+                    next_song = sample(range(0, self.playlist_listbox.size()), 1)[0]
             else:
                 # Check if the current song is not the last one in the playlist
                 if music_playlist[0] < self.playlist_listbox.size() - 1:
@@ -366,8 +365,7 @@ class MediaPlayer:
             song_info = self.extract_song_info(song)
             if song_info:
                 # Update status variable with artist and title
-                self.status_variable.set(
-                    f"{song_info['artist']} - {song_info['title']}")
+                self.status_variable.set(f"{song_info['artist']} - {song_info['title']}")
 
     
     def set_volume(self, value):
